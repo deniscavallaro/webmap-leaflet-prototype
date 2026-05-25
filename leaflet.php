@@ -54,9 +54,8 @@ div.popupDiv div#popupData {
 .mystyle {
 	fill: true;
 	weight: 1;
-	fillColor: '#FF0000'; // Colore Rosso
-	color: '#0000FF'; // Bordo Blu
-	fillOpacity: 0.7;
+	fillColor: '#FF0000'; 
+	color: '#0000FF';
 	opacity: 1;
 }
 </style>
@@ -174,7 +173,7 @@ OSM_layer.addTo(mymap);
 	var wmsLayer_6 = L.tileLayer.wms('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
 			layers: 'vestizioni',
 			crs: crs_6706,
-		format: 'image/png',
+			format: 'image/png',
 			maxZoom: 19,
 			transparent: true
 	});
@@ -216,7 +215,7 @@ OSM_layer.addTo(mymap);
 	}
 	L.control.layers('',overlays).addTo(mymap);
 	
-	<!-- attivo la ricerca -->
+	
 	var osmGeocoder = new L.Control.OSMGeocoder({placeholder: 'Cerca l\'indirizzo...', text: 'Cerca'});
 	mymap.addControl(osmGeocoder);
 	
