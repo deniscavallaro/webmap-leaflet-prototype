@@ -1,7 +1,7 @@
 
-class MotoreMappa {
+export class MotoreMappa {
     
-    static iniziomappa(){
+    iniziomappa(){
         const map = L.map('map').setView([45.407733, 11.873339], 15); // coordinate di padova 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
