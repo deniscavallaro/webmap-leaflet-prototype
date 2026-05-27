@@ -18,11 +18,16 @@ export class MotoreMappa {
         });
 
         osm.addTo(this.map);
-
-        console.log("aggiungendo markers")
-        
+/*
+        var icona = L.icon({
+            iconUrl: './img/icon2.jpg',
+            iconSize:     [38, 95], 
+            iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+            popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+        });
+*/
         //var markers  = L.layerGroup([
-        var m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'), // venezia
+        var m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'), // venezia // , {icon: icona}
             m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'), // padova
             m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3')
         //]); 
@@ -41,76 +46,134 @@ export class MotoreMappa {
 
         // province veneto
         var l1 = L.tileLayer.wms('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
-            layers: ['province', 'CP.CadastralZoning'],
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true,
-            attribution: '© ' + '<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/it/">Agenzia delle Entrate</a>',
-        });
+			layers: ['province', 'CP.CadastralZoning'],
+			crs: crs_6706,
+			format: 'image/png',
+			maxZoom: 19,
+			transparent: true,
+			attribution: '© ' + '<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/it/">Agenzia delle Entrate</a>',
+		});
 
-        var punti = L.layerGroup([m1,m2, m3, l1])
+        var punti = L.layerGroup([m1,m2, m3])
+        var province = L.layerGroup([l1])
 
           //registro layer
         this.layers["punti"] = punti;
+        this.layers["province"] = l1;
         punti.addTo(this.map)
+        //l1.addTo(this.map)
+
+
+        // control layers -> overlay maps e basemaps
+        //basemap -> stradale, ortofoto, tecnico
+        //overlay -> povince, punti
+        var stradale = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
+            layers: 'strade',
+            crs: crs_6706,
+            format: 'image/png',
+            maxZoom: 19,
+            transparent: true
+        }); 
+
+        var ortofoto = L.tileLayer("https://idt2-geoserver.regione.veneto.it/geoserver/ows", { // ortofoto veneto
+            layers: 'strade',
+            crs: crs_6706,
+            format: 'image/png',
+            maxZoom: 19,
+            transparent: true
+        }); 
+
+        var tecnico = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
+            layers: 'strade',
+            crs: crs_6706,
+            format: 'image/png',
+            maxZoom: 19,
+            transparent: true
+    });
+
+    var baseMaps = {
+        "<span style='color: grey'> Stradale </span>" : stradale,
+        "<span style='color: green'> Ortofoto </span>" : ortofoto,
+        "<span style='color: orange'> Tecnico </span>" : tecnico
     }
-    // timer che ricalcola la mappa se non funziona
-    avvia() {
-        setTimeout(iniziomappa(), 500);
+
+   /* var overlayMaps = {
+        "punti" : punti,
+        "province" : l1,
+    }*/
+    
+    var layerControl = L.control.layers(baseMaps,this.layers).addTo(this.map);
+
+
     }
 
     // metodo togglelayer
-    toggleLayer(nomelayer, stato){
+    toggleLayer(nomelayer, visibile){
         //se la mappa non contiene il layer
         if(!this.map.hasLayer(nomelayer)) console.log("Layer inesistente -> " + nomelayer)
             // se lo stato è true
-        if (stato) this.map.addLayer(nomelayer);
+        if (visibile) this.map.addLayer(nomelayer);
             // altriemnti
 		else this.map.removeLayer(nomelayer);
     }
 
-    avviaToggleLayer(){
-        setTimeout(this.toggleLayer(), 3000)
-    }
+    
+    buttons(){
+ // se il bottone è stato cliccato lo attiva altrimenti no
+        const btnpunti = document.getElementById("btnpunti")
+        let puntiVisibili = true
+       
+        btnpunti.addEventListener('click', function(){
+            puntiVisibili = !puntiVisibili;
+            console.log("pulsante premuto")
+            this.toggleLayer("punti", puntiVisibili)
+            //if(pVisibili) document.getElementById("btnpunti").textContent = "spegni punti";
+            //else document.getElementById("btnpunti").textContent = "accendi punti"; 
+            document.getElementById("togglePunti").textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
 
-
-
-    /*
-    bottoni(){
-        // bottoni
-        const btn = document.getElementById("btnLayers")
-        //const spegni = document.getElementById("accendilayers")
-
-        btn.addEventListener('click', function(){
-            
+        const btnprovince = document.getElementById("btnpunti")
+        let provVisibili = true
+       
+        btnprovince.addEventListener('click', function(){
+            provVisibili = !provVisibili;
+            console.log("pulsante premuto")
+            this.toggleLayer("punti", provVisibili)
+            //if(pVisibili) document.getElementById("btnpunti").textContent = "spegni punti";
+            //else document.getElementById("btnpunti").textContent = "accendi punti"; 
+            document.getElementById("togglePunti").textContent = (provVisibili ? "Spegni punti" : "Accendi punti");
         })
-    } */
+        })
 
+    }
+        
+
+
+
+
+
+
+/*
+    checkbox(){
+        // bottoni
+        const btn = document.getElementById("input")
+        btn.type = "checkbox"
+        btn.value = n 
+
+//document.getElementById("divA").textContent = "This text is different!";
+// The HTML for divA is now:
+// <div id="divA">This text is different!</div>
+
+        btn.addEventListener('click', function(v){
+            this.toggleLayer(n, v.target.checked)
+        })
+    } 
+
+*/
     
 
 
-/*    var stradale = L.tileLayer(, {
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
-    }); */
- /*   var ortofoto = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
-    }); 
-    var tecnico = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
-    }); */
+/*     */
     
 }
 
+  

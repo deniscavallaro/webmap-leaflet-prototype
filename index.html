@@ -4,10 +4,13 @@
 			<meta charset="UTF-8">
 			<title>Prototipo WebGIS per Backoffice Tecnico</title>
 			<link rel="stylesheet" href="style.css">
-			<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">        
+			<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">       
     </head>
     
     <body>
+		<button tag = "btnpunti" >Spegni punti</button>
+		<button tag = "btnprovince" >Spegni province</button>
+
         <div id="map" ></div> 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>
@@ -16,6 +19,16 @@
             import { MotoreMappa } from './MotoreMappa.js';
             const mappa = new MotoreMappa();
             mappa.iniziomappa();
+			/*
+			let puntiVisibili = true;
+			document.getElementById("btnpunti").addEventListener("click", () => {
+				puntiVisibili = !puntiVisibili;
+
+				mappa.toggleLayer("punti", puntiVisibili);
+
+				document.getElementById("btnpunti").textContent =
+					puntiVisibili ? "Spegni punti" : "Accendi punti";
+			});*/
             
 /*
              function spegniLayer() {
@@ -26,14 +39,25 @@
 			}
 			setTimeout(spegniLayer, 3000);
 			setTimeout(accendiLayer, 6000);
-*/
+
 			
 			setTimeout(() => {
 				mappa.toggleLayer("punti", false);
 			}, 3000);
+
 			setTimeout(() => {
 				mappa.toggleLayer("punti", true);
 			}, 6000);
+
+            setTimeout(() => {
+				mappa.toggleLayer("province", false);
+			}, 9000);
+
+			setTimeout(() => {
+				mappa.toggleLayer("province", true);
+			}, 12000);
+
+*/
         </script>
     </body>
 </html>
