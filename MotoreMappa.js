@@ -1,13 +1,24 @@
 
 export class MotoreMappa {
 
-    constructor() {
+    constructor(configurazione) {
         this.map = null;
         this.layers = {};
+        this.idContenitore = configurazione.idContenitore || "map";
+        this.centro = configurazione.centro || [45.407733, 11.873339];
+        this.zoom = configurazione.zoom || 12;
+
+        
     }
+
+    /**
+	 * Inizializza e gestisce una mappa Leaflet ei suoi layers
+     */
     
     iniziomappa(){
-        this.map = L.map('map').setView([45.407733, 11.873339], 15); // coordinate di padova 
+
+        // creazione mappa
+        this.map = L.map(this.idContenitore).setView(this.centro, this.zoom);
         /*L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);*/
@@ -19,6 +30,7 @@ export class MotoreMappa {
 
         osm.addTo(this.map);
 /*
+aggiungere un'icona
         var icona = L.icon({
             iconUrl: './img/icon2.jpg',
             iconSize:     [38, 95], 
@@ -26,23 +38,22 @@ export class MotoreMappa {
             popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
         });
 */
-        //var markers  = L.layerGroup([
-        const m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'); 				// venezia // , {icon: icona}
-        const m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'); 		// padova
-        const m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3');
-        //]); 
+        const m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'), // venezia  
+              m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'), // padova
+              m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3')
        
+        var Bbox_width= 18.99-5.93;
+        var startResolution = Bbox_width/1024;
         var grid_resolution = new Array(22);
-		for (let i = 0; i < 22; ++i) {
-			grid_resolution[i] = ( (18.99-5.93) /1024 ) / Math.pow(2, i);
-		}
+        for (var i = 0; i < 22; ++i) {
+            grid_resolution[i] = startResolution / Math.pow(2, i);
+        }
 
        var crs_6706 = new L.Proj.CRS('EPSG:6706', '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs', {
             origin: [0, 0],
             bounds: L.bounds([5.93, 34.76], [18.99, 47.1]),
             resolutions: grid_resolution
         });
- 
 
         // province veneto
         var l1 = L.tileLayer.wms('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
@@ -54,16 +65,22 @@ export class MotoreMappa {
 			attribution: '© ' + '<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/it/">Agenzia delle Entrate</a>',
 		});
 
-        var punti = L.layerGroup([m1,m2, m3]);
+        var punti = L.layerGroup([m1,m2, m3])
+        //var province = L.layerGroup([l1])
 
           //registro layer
         this.layers["punti"] = punti;
         this.layers["province"] = l1;
-        punti.addTo(this.map);
+        punti.addTo(this.map)
+        //l1.addTo(this.map)
 
-        // control layers -> overlay maps e basemaps
-        //basemap -> stradale, ortofoto, tecnico
-        //overlay -> povince, punti
+        // visualizzo layers in console
+        console.log(this.layers)
+
+        /*  control layers -> overlay maps e basemaps
+            basemap -> stradale, ortofoto, tecnico
+            overlay -> povince, punti 
+        */
         var stradale = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
             layers: 'strade',
             crs: crs_6706,
@@ -93,28 +110,19 @@ export class MotoreMappa {
         "<span style='color: green'> Ortofoto </span>" : ortofoto,
         "<span style='color: orange'> Tecnico </span>" : tecnico
     }
-
-   /* var overlayMaps = {
-        "punti" : punti,
-        "province" : l1,
-    }*/
     
     var layerControl = L.control.layers(baseMaps,this.layers).addTo(this.map);
-
-
     }
 
-    // metodo togglelayer
-	toggleLayer(nomeLayer, visibile){
- /*
+    /**
+	 * Attiva o disattiva uno o più layer 
+	 * 
+	 * @param string nomeLayer	nome del layer
+	 * @param boolean visibile se true il layer è attivo, altrimenti non lo è
+     */
+    toggleLayer(nomeLayer, visibile){
         //se la mappa non contiene il layer
-        if(!this.map.hasLayer(nomelayer)) console.log("Layer inesistente -> " + nomelayer)
-            // se lo stato è true
-        if (visibile) this.map.addLayer(nomelayer);
-            // altriemnti
-		else this.map.removeLayer(nomelayer);
-*/
-		const layer = this.layers[nomeLayer];
+       const layer = this.layers[nomeLayer];
 		if (!layer) {
 			console.log("Layer inesistente -> " + nomeLayer);
 			return;
@@ -124,17 +132,22 @@ export class MotoreMappa {
 		} else {
 			this.map.removeLayer(layer);
 		}
-	}
+    }
 
-    
+    /**
+	 * Gestisce i bottoni che attivano o disattivano i layers 
+	 * 
+     */
     buttons() {
  // se il bottone è stato cliccato lo attiva altrimenti no
         const btnpunti = document.getElementById("btnpunti");
         const btnprovince = document.getElementById("btnprovince");
-       
-		let puntiVisibili = true;
-		let provinceVisibili = true;
-       
+        const btntutti = document.getElementById("btntutti");
+
+        let puntiVisibili = true;
+        let provinceVisibili = false;
+        let tuttoVisibile = true;
+        
         btnpunti.addEventListener("click", () => {
             puntiVisibili = !puntiVisibili;
             this.toggleLayer("punti", puntiVisibili);
@@ -146,29 +159,17 @@ export class MotoreMappa {
             this.toggleLayer("province", provinceVisibili);
             btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
         });
-    }
+
+        btntutti.addEventListener("click", () => {
+            tuttoVisibile = !tuttoVisibile;
+            this.toggleLayer("province", tuttoVisibile);
+            this.toggleLayer("punti", tuttoVisibile);
+            btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layer" : "Accendi tutti i layer");
+        });
+
         
-/*
-    checkbox(){
-        // bottoni
-        const btn = document.getElementById("input")
-        btn.type = "checkbox"
-        btn.value = n 
 
-//document.getElementById("divA").textContent = "This text is different!";
-// The HTML for divA is now:
-// <div id="divA">This text is different!</div>
-
-        btn.addEventListener('click', function(v){
-            this.toggleLayer(n, v.target.checked)
-        })
-    } 
-
-*/
-    
-
-
-/*     */
+    }
     
 }
 
