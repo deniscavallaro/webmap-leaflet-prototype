@@ -8,9 +8,10 @@
     </head>
     
     <body>
-		<button tag = "btnpunti" >Spegni punti</button>
-		<button tag = "btnprovince" >Spegni province</button>
-
+		<div id="pannello-comandi">
+			<button id="btnpunti" >Spegni punti</button>
+			<button id="btnprovince" >Spegni province</button>
+		</div>
         <div id="map" ></div> 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>
@@ -19,6 +20,7 @@
             import { MotoreMappa } from './MotoreMappa.js';
             const mappa = new MotoreMappa();
             mappa.iniziomappa();
+            mappa.buttons();
 			/*
 			let puntiVisibili = true;
 			document.getElementById("btnpunti").addEventListener("click", () => {

@@ -27,15 +27,15 @@ export class MotoreMappa {
         });
 */
         //var markers  = L.layerGroup([
-        var m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'), // venezia // , {icon: icona}
-            m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'), // padova
-            m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3')
+        const m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'); 				// venezia // , {icon: icona}
+        const m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'); 		// padova
+        const m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3');
         //]); 
        
         var grid_resolution = new Array(22);
-            for (let i = 0; i < 22; ++i) {
-                grid_resolution[i] = ( (18.99-5.93) /1024 ) / Math.pow(2, i);
-            }
+		for (let i = 0; i < 22; ++i) {
+			grid_resolution[i] = ( (18.99-5.93) /1024 ) / Math.pow(2, i);
+		}
 
        var crs_6706 = new L.Proj.CRS('EPSG:6706', '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs', {
             origin: [0, 0],
@@ -54,15 +54,12 @@ export class MotoreMappa {
 			attribution: '© ' + '<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/it/">Agenzia delle Entrate</a>',
 		});
 
-        var punti = L.layerGroup([m1,m2, m3])
-        var province = L.layerGroup([l1])
+        var punti = L.layerGroup([m1,m2, m3]);
 
           //registro layer
         this.layers["punti"] = punti;
         this.layers["province"] = l1;
-        punti.addTo(this.map)
-        //l1.addTo(this.map)
-
+        punti.addTo(this.map);
 
         // control layers -> overlay maps e basemaps
         //basemap -> stradale, ortofoto, tecnico
@@ -108,50 +105,49 @@ export class MotoreMappa {
     }
 
     // metodo togglelayer
-    toggleLayer(nomelayer, visibile){
+	toggleLayer(nomeLayer, visibile){
+ /*
         //se la mappa non contiene il layer
         if(!this.map.hasLayer(nomelayer)) console.log("Layer inesistente -> " + nomelayer)
             // se lo stato è true
         if (visibile) this.map.addLayer(nomelayer);
             // altriemnti
 		else this.map.removeLayer(nomelayer);
-    }
+*/
+		const layer = this.layers[nomeLayer];
+		if (!layer) {
+			console.log("Layer inesistente -> " + nomeLayer);
+			return;
+		}
+		if (visibile) {
+			this.map.addLayer(layer);
+		} else {
+			this.map.removeLayer(layer);
+		}
+	}
 
     
-    buttons(){
+    buttons() {
  // se il bottone è stato cliccato lo attiva altrimenti no
-        const btnpunti = document.getElementById("btnpunti")
-        let puntiVisibili = true
+        const btnpunti = document.getElementById("btnpunti");
+        const btnprovince = document.getElementById("btnprovince");
        
-        btnpunti.addEventListener('click', function(){
+		let puntiVisibili = true;
+		let provinceVisibili = true;
+       
+        btnpunti.addEventListener("click", () => {
             puntiVisibili = !puntiVisibili;
-            console.log("pulsante premuto")
-            this.toggleLayer("punti", puntiVisibili)
-            //if(pVisibili) document.getElementById("btnpunti").textContent = "spegni punti";
-            //else document.getElementById("btnpunti").textContent = "accendi punti"; 
-            document.getElementById("togglePunti").textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
+            this.toggleLayer("punti", puntiVisibili);
+            btnpunti.textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
+        });
 
-        const btnprovince = document.getElementById("btnpunti")
-        let provVisibili = true
-       
-        btnprovince.addEventListener('click', function(){
-            provVisibili = !provVisibili;
-            console.log("pulsante premuto")
-            this.toggleLayer("punti", provVisibili)
-            //if(pVisibili) document.getElementById("btnpunti").textContent = "spegni punti";
-            //else document.getElementById("btnpunti").textContent = "accendi punti"; 
-            document.getElementById("togglePunti").textContent = (provVisibili ? "Spegni punti" : "Accendi punti");
-        })
-        })
-
+        btnprovince.addEventListener("click", () => {
+            provinceVisibili = !provinceVisibili;
+            this.toggleLayer("province", provinceVisibili);
+            btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
+        });
     }
         
-
-
-
-
-
-
 /*
     checkbox(){
         // bottoni
