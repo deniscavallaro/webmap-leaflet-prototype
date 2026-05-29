@@ -4,31 +4,29 @@
 			<meta charset="UTF-8">
 			<title>Prototipo WebGIS per Backoffice Tecnico</title>
 			<link rel="stylesheet" href="style.css">
-			<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+			<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">       
     </head>
     
     <body>
-        <button id="togglePunti">Spegni punti</button>
-		<div id="map"></div> 
+		<div id="pannello-comandi">
+			<button id="btnpunti" >Spegni punti</button>
+			<button id="btnprovince" >Accendi province</button>
+			<button id="btntutti" >Spegni tutti i layers</button>
+		</div>
+        <div id="map" ></div> 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/1.0.2/proj4leaflet.js"></script>       
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/1.0.2/proj4leaflet.js"></script>
         <script type="module">
-			// VISUALIZZO LA MAPPA
             import { MotoreMappa } from './MotoreMappa.js';
-            const mappa = new MotoreMappa();
-            mappa.iniziomappa();
-			
-			// SOSTITUISCO IL SETTIMEOUT CON IL PULSANTE
-			let puntiVisibili = true;
-			document.getElementById("togglePunti").addEventListener("click", () => {
-				puntiVisibili = !puntiVisibili;
-
-				mappa.toggleLayer("punti", puntiVisibili);
-
-				document.getElementById("togglePunti").textContent =
-					puntiVisibili ? "Spegni punti" : "Accendi punti";
+            const mappa = new MotoreMappa({
+				idContenitore: "map",
+				centro: [41.9028, 12.4964],
+				zoom: 10,
+				layerAttivi: ["punti"]
 			});
+            mappa.iniziomappa();
+            mappa.buttons();
         </script>
     </body>
 </html>
