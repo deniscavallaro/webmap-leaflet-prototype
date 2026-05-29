@@ -10,7 +10,7 @@
     <body>
 		<div id="pannello-comandi">
 			<button id="btnpunti" >Spegni punti</button>
-			<button id="btnprovince" >Accendi province</button>
+			<button id="btnprovince" >Spegni province</button>
 			<button id="btntutti" >Spegni tutti i layers</button>
 		</div>
         <div id="map" ></div> 
@@ -22,8 +22,9 @@
             const mappa = new MotoreMappa({
 				idContenitore: "map",
 				centro: [41.9028, 12.4964],
-				zoom: 10
-			});
+				zoom: 10,
+                layerAttivi : ["punti", "province"]
+			})
             mappa.iniziomappa();
             mappa.buttons();
         </script>

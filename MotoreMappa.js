@@ -7,6 +7,7 @@ export class MotoreMappa {
         this.idContenitore = configurazione.idContenitore || "map";
         this.centro = configurazione.centro || [45.407733, 11.873339];
         this.zoom = configurazione.zoom || 12;
+        this.layerAttivi = configurazione.layerAttivi || [];
 
         
     }
@@ -56,7 +57,7 @@ aggiungere un'icona
         });
 
         // province veneto
-        var l1 = L.tileLayer.wms('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
+        var province = L.tileLayer.wms('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
 			layers: ['province', 'CP.CadastralZoning'],
 			crs: crs_6706,
 			format: 'image/png',
@@ -70,12 +71,18 @@ aggiungere un'icona
 
           //registro layer
         this.layers["punti"] = punti;
-        this.layers["province"] = l1;
-        punti.addTo(this.map)
+        this.layers["province"] = province;
+        //punti.addTo(this.map)
         //l1.addTo(this.map)
 
         // visualizzo layers in console
         console.log(this.layers)
+
+        // attivazione automatica layers
+        for(const nomeLayer of this.layerAttivi){
+            const ll = this.layers[nomeLayer]
+            if(ll) ll.addTo(this.map)
+        }
 
         /*  control layers -> overlay maps e basemaps
             basemap -> stradale, ortofoto, tecnico
@@ -135,6 +142,27 @@ aggiungere un'icona
     }
 
     /**
+	 * Attiva o disattiva tutti i layers contemporaneamente
+	 * 
+	 * @param boolean visibile se true il layer è attivo, altrimenti non lo è
+     */
+
+    toggleTutti(visibile){
+		if (visibile) {
+            for(const nomeLayer of this.layerAttivi){
+                const layer = this.layers[nomeLayer]
+                if(layer) this.map.addLayer(layer);
+            }
+		} else {
+			for(const nomeLayer of this.layerAttivi){
+                const layer = this.layers[nomeLayer]
+                if(layer) this.map.removeLayer(layer);
+            }
+		}
+
+    }
+
+    /**
 	 * Gestisce i bottoni che attivano o disattivano i layers 
 	 * 
      */
@@ -145,7 +173,7 @@ aggiungere un'icona
         const btntutti = document.getElementById("btntutti");
 
         let puntiVisibili = true;
-        let provinceVisibili = false;
+        let provinceVisibili = true;
         let tuttoVisibile = true;
         
         btnpunti.addEventListener("click", () => {
@@ -162,8 +190,7 @@ aggiungere un'icona
 
         btntutti.addEventListener("click", () => {
             tuttoVisibile = !tuttoVisibile;
-            this.toggleLayer("province", tuttoVisibile);
-            this.toggleLayer("punti", tuttoVisibile);
+            this.toggleTutti(tuttoVisibile);
             btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layer" : "Accendi tutti i layer");
         });
 
