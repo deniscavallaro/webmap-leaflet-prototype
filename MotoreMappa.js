@@ -1,7 +1,7 @@
 
 export class MotoreMappa {
 
-    constructor(configurazione) {
+    constructor(configurazione = {}) {
         this.map = null;
         this.layers = {};
         this.idContenitore = configurazione.idContenitore || "map";
