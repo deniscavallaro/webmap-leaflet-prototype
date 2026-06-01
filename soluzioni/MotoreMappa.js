@@ -89,21 +89,21 @@ aggiungere un'icona
             transparent: true
         }); 
 
-        var ortofoto = L.tileLayer("https://idt2-geoserver.regione.veneto.it/geoserver/ows", { // ortofoto veneto
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
+        var ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=QNUuqstzpWrLS6c5Z1YY", { // satellite
+					type: "tile",
+					label: "Satellite",
+					options: {
+						attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+					}
         }); 
 
-        var tecnico = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
-    });
+        var tecnico = L.tileLayer("https://api.maptiler.com/maps/backdrop-v4/{z}/{x}/{y}.png?key=Ur6DZCPQrOKiB0iHTVUN", { // backdrop
+					type: "tile",
+					label: "Backdrop",
+					options: {
+						attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+					}
+        }); 
 
     var baseMaps = {
         "<span style='color: grey'> Stradale </span>" : stradale,
