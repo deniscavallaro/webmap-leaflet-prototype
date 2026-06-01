@@ -147,20 +147,11 @@ aggiungere un'icona
 	 * @param boolean visibile se true il layer è attivo, altrimenti non lo è
      */
 
-    toggleTutti(visibile){
-		if (visibile) {
-            for(const nomeLayer of this.layerAttivi){
-                const layer = this.layers[nomeLayer]
-                if(layer) this.map.addLayer(layer);
-            }
-		} else {
-			for(const nomeLayer of this.layerAttivi){
-                const layer = this.layers[nomeLayer]
-                if(layer) this.map.removeLayer(layer);
-            }
+	toggleTutti(visibile) {
+		for (const nomeLayer in this.layers) {
+			this.toggleLayer(nomeLayer, visibile);
 		}
-
-    }
+	}
 
     /**
 	 * Gestisce i bottoni che attivano o disattivano i layers 
@@ -172,9 +163,9 @@ aggiungere un'icona
         const btnprovince = document.getElementById("btnprovince");
         const btntutti = document.getElementById("btntutti");
 
-        let puntiVisibili = true;
-        let provinceVisibili = true;
-        let tuttoVisibile = true;
+		let puntiVisibili = this.layerAttivi.includes("punti");
+		let provinceVisibili = this.layerAttivi.includes("province");
+		let tuttoVisibile = puntiVisibili && provinceVisibili;
         
         btnpunti.addEventListener("click", () => {
             puntiVisibili = !puntiVisibili;
