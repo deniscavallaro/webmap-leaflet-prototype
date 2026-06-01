@@ -8,9 +8,7 @@ export class MotoreMappa {
         this.centro = configurazione.centro || [45.407733, 11.873339];
         this.zoom = configurazione.zoom || 12;
         this.layerAttivi = configurazione.layerAttivi || [];
-
-        
-    }
+    };
 
     /**
 	 * Inizializza e gestisce una mappa Leaflet ei suoi layers
@@ -24,6 +22,7 @@ export class MotoreMappa {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);*/
 
+        //basemap openstreet map, di base
         var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
@@ -113,6 +112,7 @@ aggiungere un'icona
     });
 
     var baseMaps = {
+        "<span style='color: black'> OpenStreetMap(default) </span>" : osm,
         "<span style='color: grey'> Stradale </span>" : stradale,
         "<span style='color: green'> Ortofoto </span>" : ortofoto,
         "<span style='color: orange'> Tecnico </span>" : tecnico
@@ -124,12 +124,12 @@ aggiungere un'icona
     /**
 	 * Attiva o disattiva uno o più layer 
 	 * 
-	 * @param string nomeLayer	nome del layer
-	 * @param boolean visibile se true il layer è attivo, altrimenti non lo è
+	 * @param string  -> nomeLayer	nome del layer
+	 * @param boolean -> visibile se true il layer è attivo, altrimenti non lo è
      */
     toggleLayer(nomeLayer, visibile){
-        //se la mappa non contiene il layer
        const layer = this.layers[nomeLayer];
+       //se la mappa non contiene il layer
 		if (!layer) {
 			console.log("Layer inesistente -> " + nomeLayer);
 			return;
@@ -144,48 +144,66 @@ aggiungere un'icona
     /**
 	 * Attiva o disattiva tutti i layers contemporaneamente
 	 * 
-	 * @param boolean visibile se true il layer è attivo, altrimenti non lo è
+	 * @param boolean -> visibile se true il layer è attivo, altrimenti non lo è
      */
 
-	toggleTutti(visibile) {
+    toggleTutti(visibile){
 		for (const nomeLayer in this.layers) {
 			this.toggleLayer(nomeLayer, visibile);
 		}
-	}
+    }
 
     /**
 	 * Gestisce i bottoni che attivano o disattivano i layers 
 	 * 
      */
     buttons() {
- // se il bottone è stato cliccato lo attiva altrimenti no
         const btnpunti = document.getElementById("btnpunti");
         const btnprovince = document.getElementById("btnprovince");
         const btntutti = document.getElementById("btntutti");
 
-		let puntiVisibili = this.layerAttivi.includes("punti");
-		let provinceVisibili = this.layerAttivi.includes("province");
-		let tuttoVisibile = puntiVisibili && provinceVisibili;
+        let puntiVisibili = true;
+		let provinceVisibili = true;
+		let tuttoVisibile = true;
         
         btnpunti.addEventListener("click", () => {
             puntiVisibili = !puntiVisibili;
             this.toggleLayer("punti", puntiVisibili);
-            btnpunti.textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
+            btnpunti.textContent = (puntiVisibili ? "Spegni 'punti'" : "Accendi 'punti'");
         });
 
         btnprovince.addEventListener("click", () => {
             provinceVisibili = !provinceVisibili;
             this.toggleLayer("province", provinceVisibili);
-            btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
+            btnprovince.textContent = (provinceVisibili ? "Spegni 'province'" : "Accendi 'province'");
+            
+            
         });
 
         btntutti.addEventListener("click", () => {
             tuttoVisibile = !tuttoVisibile;
             this.toggleTutti(tuttoVisibile);
-            btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layer" : "Accendi tutti i layer");
+            puntiVisibili = tuttoVisibile;
+            provinceVisibili = tuttoVisibile;
+            this.aggiornaTestiBottoni(btnpunti, btnprovince, btntutti, puntiVisibili, provinceVisibili, tuttoVisibile);
         });
+    }
 
-        
+    /**
+	 * Attiva o disattiva tutti i layers contemporaneamente
+	 * 
+	 * @param button btnpunti    -> bottone che attiva/disattiva marker
+     * @param button btnprovince -> bottone che attiva/disattiva layer province
+     * @param button btntutti    -> bottone che attiva/disattiva tutt i layers
+     * 
+     * @param boolean puntiVisibili     -> true se il layer "punti" è attivo, false se non lo è
+     * @param boolean provinceVisibili  -> true se il layer "province" è attivo, false se non lo è
+     * @param boolean tuttoVisibile     -> true se tutti i layers sono attivi, false se non lo sono
+     */
+    aggiornaTestiBottoni( btnpunti, btnprovince, btntutti, puntiVisibili, provinceVisibili, tuttoVisibile){
+        btnpunti.textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
+        btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
+        btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layers" : "Accendi tutti i layers");
 
     }
     
