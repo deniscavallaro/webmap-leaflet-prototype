@@ -28,6 +28,7 @@ export class MotoreMappa {
             attribution: '© OpenStreetMap'
         });
 
+        //basemap iniziale -> openstreetmap
         osm.addTo(this.map);
 /*
 aggiungere un'icona
@@ -82,43 +83,64 @@ aggiungere un'icona
             const ll = this.layers[nomeLayer]
             if(ll) ll.addTo(this.map)
         }
+        
 
         /*  control layers -> overlay maps e basemaps
             basemap -> stradale, ortofoto, tecnico
             overlay -> povince, punti 
         */
-        var stradale = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
+        var stradale = L.tileLayer("https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'strade',
+            //crs: crs_6706,
+            //format: 'image/png',
+            //maxZoom: 19,
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
         }); 
+ 
+        var ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: "Satellite",
+            options: {
+                attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+                
+        });
 
-        var ortofoto = L.tileLayer("https://idt2-geoserver.regione.veneto.it/geoserver/ows", { // ortofoto veneto
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
-        }); 
+        var oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'Ocean',
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
 
-        var tecnico = L.tileLayer('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
-            layers: 'strade',
-            crs: crs_6706,
-            format: 'image/png',
-            maxZoom: 19,
-            transparent: true
-    });
+        var rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'Outdoor',
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+
+        //inizio con rilievi
+        //rilievi.addTo(this.map);
 
     var baseMaps = {
-        "<span style='color: black'> OpenStreetMap(default) </span>" : osm,
+        "<span style='color: black'> OpenStreetMap (default) </span>" : osm,
         "<span style='color: grey'> Stradale </span>" : stradale,
         "<span style='color: green'> Ortofoto </span>" : ortofoto,
-        "<span style='color: orange'> Tecnico </span>" : tecnico
+        "<span style='color: blue'> Oceani </span>" : oceani,
+        "<span style='color: brown'> Rilievi </span>" : rilievi
     }
+
     
-    var layerControl = L.control.layers(baseMaps,this.layers).addTo(this.map);
+    var layerControl = L.control.layers(baseMaps, this.layers).addTo(this.map);
     }
 
     /**
@@ -169,13 +191,13 @@ aggiungere un'icona
         btnpunti.addEventListener("click", () => {
             puntiVisibili = !puntiVisibili;
             this.toggleLayer("punti", puntiVisibili);
-            btnpunti.textContent = (puntiVisibili ? "Spegni 'punti'" : "Accendi 'punti'");
+            btnpunti.textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
         });
 
         btnprovince.addEventListener("click", () => {
             provinceVisibili = !provinceVisibili;
             this.toggleLayer("province", provinceVisibili);
-            btnprovince.textContent = (provinceVisibili ? "Spegni 'province'" : "Accendi 'province'");
+            btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
             
             
         });
@@ -190,7 +212,7 @@ aggiungere un'icona
     }
 
     /**
-	 * Attiva o disattiva tutti i layers contemporaneamente
+	 * Aggiorna i testi dei bottoni
 	 * 
 	 * @param button btnpunti    -> bottone che attiva/disattiva marker
      * @param button btnprovince -> bottone che attiva/disattiva layer province
