@@ -8,6 +8,56 @@ export class MotoreMappa {
         this.centro = configurazione.centro || [45.407733, 11.873339];
         this.zoom = configurazione.zoom || 12;
         this.layerAttivi = configurazione.layerAttivi || [];
+        this.basemaps = {
+            osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }),
+
+            stradale = L.tileLayer("https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+                type: "tile",
+                label: 'strade',
+                maxZoom: 19,
+                //crs: crs_6706,
+                //maxZoom: 19,
+                options: {
+                    attribution: 
+                    "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+                }
+            }), 
+ 
+            ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+                type: "tile",
+                label: "Satellite",
+                maxZoom: 19,
+                options: {
+                    attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+                }
+            }),
+
+            oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+                type: "tile",
+                label: 'Ocean',
+                maxZoom: 19,
+                options: {
+                    attribution: 
+                    "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+                }
+            }),
+
+            rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+                type: "tile",
+                label: 'Outdoor',
+                maxZoom: 19,
+                options: {
+                    attribution: 
+                    "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+                }
+            })
+
+
+        };
+        this.nomeBasemapPredefinita = configurazione.nomeBasemapPredefinita || "OpenStreetMap";
     };
 
     /**
@@ -15,30 +65,17 @@ export class MotoreMappa {
      */
     
     iniziomappa(){
-
         // creazione mappa
         this.map = L.map(this.idContenitore).setView(this.centro, this.zoom);
         /*L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);*/
 
-        //basemap openstreet map, di base
-        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        });
+        /*  
+            basemap -> stradale, ortofoto, oceani, rilievi
+            overlay -> province, punti 
+        */
 
-        //basemap iniziale -> openstreetmap
-        osm.addTo(this.map);
-/*
-aggiungere un'icona
-        var icona = L.icon({
-            iconUrl: './img/icon2.jpg',
-            iconSize:     [38, 95], 
-            iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-            popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-        });
-*/
         const m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'), // venezia  
               m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'), // padova
               m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3')
@@ -66,15 +103,12 @@ aggiungere un'icona
 			attribution: '© ' + '<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/it/">Agenzia delle Entrate</a>',
 		});
 
-        var punti = L.layerGroup([m1,m2, m3])
-        //var province = L.layerGroup([l1])
+        var punti = L.layerGroup([m1,m2,m3])
 
-          //registro layer
+        //registro layer
         this.layers["punti"] = punti;
         this.layers["province"] = province;
-        //punti.addTo(this.map)
-        //l1.addTo(this.map)
-
+        
         // visualizzo layers in console
         console.log(this.layers)
 
@@ -83,71 +117,16 @@ aggiungere un'icona
             const ll = this.layers[nomeLayer]
             if(ll) ll.addTo(this.map)
         }
-        
 
-        /*  control layers -> overlay maps e basemaps
-            basemap -> stradale, ortofoto, tecnico
-            overlay -> povince, punti 
-        */
-        var stradale = L.tileLayer("https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: 'strade',
-            //crs: crs_6706,
-            //format: 'image/png',
-            //maxZoom: 19,
-            options: {
-                attribution: 
-                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
-        }); 
- 
-        var ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: "Satellite",
-            options: {
-                attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
-                
-        });
-
-        var oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: 'Ocean',
-            options: {
-                attribution: 
-                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
-        });
-
-        var rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: 'Outdoor',
-            options: {
-                attribution: 
-                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
-        });
-
-        //inizio con rilievi
-        //rilievi.addTo(this.map);
-
-    var baseMaps = {
-        "<span style='color: black'> OpenStreetMap (default) </span>" : osm,
-        "<span style='color: grey'> Stradale </span>" : stradale,
-        "<span style='color: green'> Ortofoto </span>" : ortofoto,
-        "<span style='color: blue'> Oceani </span>" : oceani,
-        "<span style='color: brown'> Rilievi </span>" : rilievi
-    }
-
-    
-    var layerControl = L.control.layers(baseMaps, this.layers).addTo(this.map);
+        this.creaBaseMaps();
+        this.creaLayerControl(); 
     }
 
     /**
 	 * Attiva o disattiva uno o più layer 
 	 * 
-	 * @param string  -> nomeLayer	nome del layer
-	 * @param boolean -> visibile se true il layer è attivo, altrimenti non lo è
+	 * @param string nomeLayer -> nome del layer
+	 * @param boolean visibile -> se true il layer è attivo, altrimenti non lo è
      */
     toggleLayer(nomeLayer, visibile){
        const layer = this.layers[nomeLayer];
@@ -166,7 +145,7 @@ aggiungere un'icona
     /**
 	 * Attiva o disattiva tutti i layers contemporaneamente
 	 * 
-	 * @param boolean -> visibile se true il layer è attivo, altrimenti non lo è
+	 * @param boolean visibile -> se true il layer è attivo, altrimenti non lo è
      */
 
     toggleTutti(visibile){
@@ -200,8 +179,6 @@ aggiungere un'icona
             provinceVisibili = !provinceVisibili;
             this.toggleLayer("province", provinceVisibili);
             btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
-            
-            
         });
 
         btntutti.addEventListener("click", () => {
@@ -228,9 +205,117 @@ aggiungere un'icona
         btnpunti.textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
         btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
         btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layers" : "Accendi tutti i layers");
+    }
+
+    /**
+	 * Crea le basemap predefinite e attiva quella di default 
+	 * 
+     */
+    creaBaseMaps(){
+        //basemap openstreet map, di base
+        /*
+        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            });
+
+        var stradale = L.tileLayer("https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'strade',
+            maxZoom: 19,
+            //crs: crs_6706,
+            //maxZoom: 19,
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+
+        var ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: "Satellite",
+            maxZoom: 19,
+            options: {
+                attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+
+        var oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'Ocean',
+            maxZoom: 19,
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+
+        var rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'Outdoor',
+            maxZoom: 19,
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+        */
+        //aggiungo le basemaps
+        this.aggiungiBaseMap("<span style='color: black'> OpenStreetMap (default) </span>", osm, true);
+        this.aggiungiBaseMap("<span style='color: grey'> Stradale </span>", stradale);
+        this.aggiungiBaseMap("<span style='color: green'> Ortofoto </span>", ortofoto);
+        this.aggiungiBaseMap("<span style='color: blue'> Oceani </span>", oceani);
+        this.aggiungiBaseMap("<span style='color: brown'> Rilievi </span>", rilievi);
+
+        //aggiungo la basemap predefinita alla mappa
+        this.basemaps[this.nomeBasemapPredefinita].addTo(this.map);
+    }
+
+    /**
+	 * Crea il pannello di controlllo Leaflet per le basemap e i layer
+	 * 
+     */
+    creaLayerControl(){
+        var layerControl = L.control.layers(this.basemaps, this.layers).addTo(this.map);
+    }
+
+    /**
+	 * Aggiunge le basemap alla mappa principale
+	 * 
+	 * @param string nome         -> nome visualizzato della basemap
+     * @param var layer           -> nome della variabile legata alla basemap
+	 * @param boolean predefinita -> se true la basemap viene inportata come predefinita, altrimenti niente
+     */
+    aggiungiBaseMap(nome, layer, predefinita = false){
+        this.basemaps[nome]= layer;
+        if(predefinita) this.nomeBasemapPredefinita = nome;
+    }
+
+    /**
+	 * (dovrebbe) creare una nuova basemap con delle info standard
+	 * 
+	 * @param button layer    -> nome layer
+     * @param button tilelayer -> link al layer
+     * 
+     * @param button type    -> tipo di layer
+     * @param boolean label     -> nome sull'etichetta
+     * @param boolean maxzoom  -> zoom massimo
+     * @param boolean attribution     -> attributi
+     */
+    newBasemap(layer, tileLayer, type, label, maxZoom, attribution){
+        if(!this.basemaps.includes(layer)){
+            this.basemaps[layer] = L.tileLayer(tileLayer,{
+                type: type,
+                label: label,
+                maxZoom: maxZoom,
+                attribution: attribution
+            })
+        }else{console.log("Layer esistente");}
+    }
+        
 
     }
-    
-}
+
+
 
   
