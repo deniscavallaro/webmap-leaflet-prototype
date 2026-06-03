@@ -184,9 +184,11 @@ aggiungere un'icona
         const btnprovince = document.getElementById("btnprovince");
         const btntutti = document.getElementById("btntutti");
 
-        let puntiVisibili = true;
-		let provinceVisibili = true;
-		let tuttoVisibile = true;
+		let puntiVisibili = this.layerAttivi.includes("punti");
+		let provinceVisibili = this.layerAttivi.includes("province");
+		let tuttoVisibile = puntiVisibili && provinceVisibili;
+		
+		this.aggiornaTestiBottoni(btnpunti, btnprovince, btntutti, puntiVisibili, provinceVisibili, tuttoVisibile);
         
         btnpunti.addEventListener("click", () => {
             puntiVisibili = !puntiVisibili;
