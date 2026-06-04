@@ -8,55 +8,7 @@ export class MotoreMappa {
         this.centro = configurazione.centro || [45.407733, 11.873339];
         this.zoom = configurazione.zoom || 12;
         this.layerAttivi = configurazione.layerAttivi || [];
-        this.basemaps = {
-            osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap'
-            }),
-
-            stradale = L.tileLayer("https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-                type: "tile",
-                label: 'strade',
-                maxZoom: 19,
-                //crs: crs_6706,
-                //maxZoom: 19,
-                options: {
-                    attribution: 
-                    "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-                }
-            }), 
- 
-            ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-                type: "tile",
-                label: "Satellite",
-                maxZoom: 19,
-                options: {
-                    attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-                }
-            }),
-
-            oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-                type: "tile",
-                label: 'Ocean',
-                maxZoom: 19,
-                options: {
-                    attribution: 
-                    "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-                }
-            }),
-
-            rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-                type: "tile",
-                label: 'Outdoor',
-                maxZoom: 19,
-                options: {
-                    attribution: 
-                    "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-                }
-            })
-
-
-        };
+        this.basemaps = {};
         this.nomeBasemapPredefinita = configurazione.nomeBasemapPredefinita || "OpenStreetMap";
     };
 
@@ -213,7 +165,6 @@ export class MotoreMappa {
      */
     creaBaseMaps(){
         //basemap openstreet map, di base
-        /*
         var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '© OpenStreetMap'
@@ -259,7 +210,6 @@ export class MotoreMappa {
                 "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
             }
         });
-        */
         //aggiungo le basemaps
         this.aggiungiBaseMap("<span style='color: black'> OpenStreetMap (default) </span>", osm, true);
         this.aggiungiBaseMap("<span style='color: grey'> Stradale </span>", stradale);
