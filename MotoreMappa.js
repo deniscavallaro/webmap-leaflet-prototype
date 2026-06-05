@@ -281,7 +281,7 @@ export class MotoreMappa {
         this.pannelloCoordinate.addTo(this.map);
 
         this.map.on("mousemove", (evento) => {
-            const lat = evento.latlng.lat.toFixed(6);             // not a number
+            const lat = evento.latlng.lat.toFixed(6);
             const lng = evento.latlng.lng.toFixed(6); 
             const div = document.querySelector(".pannello-coordinate");
             div.innerHTML = "Lat: " + lat + " | Lng: "+ lng;
@@ -293,7 +293,7 @@ export class MotoreMappa {
      */
     aggiungiDoubleClickCoordinate(){
         this.map.on("dblclick", (evento) => {
-            const lat = evento.latlng.lat.toFixed(6);             // not a number
+            const lat = evento.latlng.lat.toFixed(6);
             const lng = evento.latlng.lng.toFixed(6);
             L.popup().setLatLng(evento.latlng)
                     .setContent("Lat: " + lat + " <br>Lng: "+ lng)
