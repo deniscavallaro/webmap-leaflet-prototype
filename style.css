@@ -27,3 +27,22 @@ body {
     font-size: 13px;
     box-shadow: 0 0 4px #999;
 }
+
+.pannello-legenda{
+    background: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #999;
+    max-height: 250px;
+    max-width: 260px;
+    overflow: auto;
+    font-size: 12px;
+}
+
+.voce-legenda{
+    margin-top: 8px;
+}
+
+.voce-legenda img{
+    max-width: 220px;
+}
