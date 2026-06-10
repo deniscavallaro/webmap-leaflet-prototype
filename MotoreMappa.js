@@ -8,7 +8,9 @@ export class MotoreMappa {
         this.centro = configurazione.centro || [45.407733, 11.873339];
         this.zoom = configurazione.zoom || 12;
         this.layerAttivi = configurazione.layerAttivi || [];
+        this.layerLabels = {};
         this.basemaps = {};
+        this.basemapLayers = {};
         this.nomeBasemapPredefinita = configurazione.nomeBasemapPredefinita || "OpenStreetMap";
 
         this.strumenti = configurazione.strumenti || {
@@ -20,6 +22,13 @@ export class MotoreMappa {
         }
         this.legende = {};
         this.controlloLegenda = null;
+        this.bottoniLayer = configurazione.bottoniLayer || {
+            punti: "btnpunti",
+            province: "btnprovince",
+            edifici: "btnedifici",
+            ctrr: "btnctrr",
+            straderomane: "btnromano"
+        }
     };
 
     /**
@@ -40,7 +49,7 @@ export class MotoreMappa {
     }
 
     //---------------------------------------------------
-    //              BASEMAP,LAYER, BOTTONI
+    //                      BOTTONI
     //---------------------------------------------------
 
     /**
@@ -80,44 +89,16 @@ export class MotoreMappa {
 	 * 
      */
     buttons() {
-        const btnpunti = document.getElementById("btnpunti");
-        const btnprovince = document.getElementById("btnprovince");
-        const btnedifici = document.getElementById("btnedifici");
-        const btnctrr = document.getElementById("btnctrr");
-        const btnromano = document.getElementById("btnromano");
+        this.collegaBottoniLayer();
         const btntutti = document.getElementById("btntutti");
 		
-        
-        btnpunti.addEventListener("click", () => {
-            const visibile = this.isLayerVisibile("punti");
-            this.toggleLayer("punti", !visibile);
-            this.aggiornaTestiBottoni();
-        });
-        btnprovince.addEventListener("click", () => {
-            const visibile = this.isLayerVisibile("province");
-            this.toggleLayer("province", !visibile);
-            this.aggiornaTestiBottoni();
-        });
-        btnedifici.addEventListener("click", () => {
-            const visibile = this.isLayerVisibile("edificiveneto");
-            this.toggleLayer("edificiveneto", !visibile);
-            this.aggiornaTestiBottoni();
-        });
-        btnctrr.addEventListener("click", () => {
-            const visibile = this.isLayerVisibile("ctrr");
-            this.toggleLayer("ctrr", !visibile);
-            this.aggiornaTestiBottoni();
-        });
-        btnromano.addEventListener("click", () => {
-            const visibile = this.isLayerVisibile("straderomane");
-            this.toggleLayer("straderomane", !visibile);
-            this.aggiornaTestiBottoni();
-        });
-        btntutti.addEventListener("click", () => {
-            const tuttiVisibili = this.areLayerVisibili();
-            this.toggleTutti(!tuttiVisibili);
-            this.aggiornaTestiBottoni();
-        });
+        if(btntutti){
+             btntutti.addEventListener("click", () => {
+                const tuttiVisibili = this.areLayerVisibili();
+                this.toggleTutti(!tuttiVisibili);
+                this.aggiornaTestiBottoni();
+            })
+        }
 
         this.aggiornaTestiBottoni();
     }
@@ -126,27 +107,43 @@ export class MotoreMappa {
 	 * Aggiorna i testi dei bottoni
      */
     aggiornaTestiBottoni(){
-        const btnpunti = document.getElementById("btnpunti");
-        const btnprovince = document.getElementById("btnprovince");
-        const btnedifici = document.getElementById("btnedifici");
-        const btnctrr = document.getElementById("btnctrr");
-        const btnromano = document.getElementById("btnromano");
-        const btntutti = document.getElementById("btntutti");
+        for(const nomeLayer in this.bottoniLayer){
+            const idBottone = this.bottoniLayer[nomeLayer];
+            const bottone = document.getElementById(idBottone);
+            if(!bottone) continue
 
-        let puntiVisibili = this.isLayerVisibile("punti");
-		let provinceVisibili = this.isLayerVisibile("province");
-        let edificiVisibili = this.isLayerVisibile("edificiveneto");
-		let ctrrVisibili = this.isLayerVisibile("ctrr");
-        let stradeRomaneVisibili = this.isLayerVisibile("straderomane");
-		let tuttoVisibile = this.areLayerVisibili();
+            const visibile = this.isLayerVisibile(nomeLayer)
+            const etichetta = this.layerLabels[nomeLayer] || nomeLayer;
+            bottone.textContent = (visibile ? "Spegni " + etichetta : "Accendi " + etichetta);
+        }
 
-        btnpunti.textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
-        btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
-        btnedifici.textContent = (edificiVisibili ? "Spegni edifici del veneto" : "Accendi edifici del veneto");
-        btnctrr.textContent = (ctrrVisibili ? "Spegni ctrr" : "Accendi ctrr");
-        btnromano.textContent = (stradeRomaneVisibili ? "Spegni strade romane" : "Accendi strade romane");
-        btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layers" : "Accendi tutti i layers");
+        const btntutti = document.getElementById("btntutti")
+        if(btntutti){
+            const tuttoVisibile = this.areLayerVisibili();
+            btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layers" : "Accendi tutti i layers");
+        }
     };
+
+    /**
+	 * Collega i bottoni ai layer
+     */
+    collegaBottoniLayer(){
+        for(const nomeLayer in this.bottoniLayer){
+            const idBottone = this.bottoniLayer[nomeLayer];
+            const bottone = document.getElementById(idBottone);
+            if(!bottone) continue;
+            bottone.addEventListener("click", () => {
+                const visibile  = this.isLayerVisibile(nomeLayer);
+                this.toggleLayer(nomeLayer, !visibile);
+                this.aggiornaTestiBottoni();
+            })
+        }
+    }
+    
+
+    //---------------------------------------------------
+    //                      LAYER
+    //---------------------------------------------------
 
     /**
 	 * Crea i layer predefiniti e li attiva tutti  
@@ -182,12 +179,6 @@ export class MotoreMappa {
 
         var punti = L.layerGroup([m1,m2,m3])
 
-        //registro layer
-        this.layers["punti"] = punti;
-        this.layers["province"] = province;
-        
-        // visualizzo layers in console
-
         // CREO 3 NUOVI LAYER
         var edifici = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
             layers: 'rv:edifici_veneto_feb2022',
@@ -213,14 +204,32 @@ export class MotoreMappa {
 			transparent: true
         });
 
-        this.layers["edificiveneto"] = edifici;
-        this.legende["edificiveneto"] = "http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Aedifici_veneto_feb2022"
-        this.layers["ctrr"] = ctrr;
+        //registro layer
+        //this.layers["punti"] = punti;
+        //this.layers["province"] = province;
+        this.aggiungiLayer("punti", punti, "Punti");
+        this.aggiungiLayer("province", province, "Province d'italia");
+
+        this.aggiungiLayer("edifici", edifici, "Edifici accatastati Veneto - feb2022")
+        this.legende["edifici"] = "http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Aedifici_veneto_feb2022"
+        this.aggiungiLayer("ctrr", ctrr, "ctrr")
         this.legende["ctrr"] = "http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Actrr" 
-        this.layers["straderomane"] = stradeRomane;
-        this.legende["stradeRomane"] ="http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Ac11030141212_10straderoman"
+        this.aggiungiLayer("straderomane", stradeRomane, "Strade romane")
+        this.legende["straderomane"] ="http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Ac11030141212_10straderoman"
 
         console.log(this.legende)
+    }
+
+    /**
+	 * aggiunge i layer all' array globale layers
+	 * 
+	 * @param string nome         -> nome del layer
+     * @param var layer           -> nome della variabile legata al layer
+	 * @param string etichetta    -> nome del layer visualizzato dall'utente  
+     */
+    aggiungiLayer(nome, layer, etichetta){
+        this.layers[nome] = layer;
+        this.layerLabels[nome] = etichetta;
     }
 
     /**
@@ -231,6 +240,43 @@ export class MotoreMappa {
             this.toggleLayer(nomeLayer, true);
         }
     }
+
+    /**
+	 * Mostra lo stato di UN layer, è visibile o no
+	 * 
+	 * @param string nomeLayer -> nome del layer
+     */
+    isLayerVisibile(nomeLayer){
+        const layer = this.layers[nomeLayer];
+        if(!layer) return false;
+        return this.map.hasLayer(layer);
+    }
+
+    /**
+	 * Mostra lo stato di TUTTI i layer, sono visibili o no
+     */
+    areLayerVisibili(){
+        for(const nomeLayer in this.layers){
+            if(!this.isLayerVisibile(nomeLayer)) return false;
+        }
+        return true;
+    }
+
+    /**
+	 * 1111111111111111111111111111111111111111111111111111111111111111111
+     */
+    getLayersPerLeaflet(){
+        const layersLeaflet = {};
+        for(const nome in this.layers){
+            const etichetta = this.layerLabels[nome];
+            layersLeaflet[etichetta] = this.layers[nome];
+        }
+        return layersLeaflet;
+    }
+
+    //---------------------------------------------------
+    //                      BASEMAP
+    //---------------------------------------------------
 
     /**
 	 * Crea le basemap predefinite e attiva quella di default 
@@ -284,54 +330,62 @@ export class MotoreMappa {
             }
         });
         //aggiungo le basemaps
-        this.aggiungiBaseMap("<span style='color: black'> OpenStreetMap (default) </span>", osm, true);
-        this.aggiungiBaseMap("<span style='color: grey'> Stradale </span>", stradale);
-        this.aggiungiBaseMap("<span style='color: green'> Ortofoto </span>", ortofoto);
-        this.aggiungiBaseMap("<span style='color: blue'> Oceani </span>", oceani);
-        this.aggiungiBaseMap("<span style='color: brown'> Rilievi </span>", rilievi);
+        this.aggiungiBaseMap("OpenStreetMap", osm, "<span style='color: black'> OpenStreetMap (default) </span>", true);
+        this.aggiungiBaseMap("Stradale", stradale, "<span style='color: grey'> Stradale </span>");
+        this.aggiungiBaseMap("Ortofoto", ortofoto, "<span style='color: green'> Ortofoto </span>");
+        this.aggiungiBaseMap("Oceani", oceani, "<span style='color: blue'> Oceani </span>");
+        this.aggiungiBaseMap("Rilievi", rilievi, "<span style='color: brown'> Rilievi </span>");
+        //<span style='color:'>
 
         //aggiungo la basemap predefinita alla mappa
         this.basemaps[this.nomeBasemapPredefinita].addTo(this.map); 
     }
+
+    /**
+	 * Aggiunge le basemap alL' array basemaps
+	 * 
+	 * @param string nome         -> nome visualizzato della basemap
+     * @param var layer           -> nome della variabile legata alla basemap
+     * @param string etichetta    -> nome della basemap visualizzato dall'utente
+	 * @param boolean predefinita -> se true la basemap viene inportata come predefinita, altrimenti niente  
+     */
+    aggiungiBaseMap(nome, layer, etichetta, predefinita = false){
+        this.basemaps[nome]= layer;
+        this.basemapLayers[nome] = etichetta;
+        if(predefinita) this.nomeBasemapPredefinita = nome;
+    }
+
     /**
 	 * Crea il pannello di controlllo Leaflet per le basemap e i layer 
      */
     creaLayerControl(){
-        var layerControl = L.control.layers(this.basemaps, this.layers).addTo(this.map);
+        var layerControl = L.control.layers(this.getBaseMapsPerLeaflet(), this.getLayersPerLeaflet()).addTo(this.map);
     }
 
     /**
-	 * Aggiunge le basemap alla mappa principale
-	 * 
-	 * @param string nome         -> nome visualizzato della basemap
-     * @param var layer           -> nome della variabile legata alla basemap
-	 * @param boolean predefinita -> se true la basemap viene inportata come predefinita, altrimenti niente  
+	 * Sincronizzazione layer control e bottoni
      */
-    aggiungiBaseMap(nome, layer, predefinita = false){
-        this.basemaps[nome]= layer;
-        if(predefinita) this.nomeBasemapPredefinita = nome;
+    sincronizzazioneControlliLayer(){
+        this.map.on("overlayadd", () => {
+            this.aggiornaTestiBottoni();
+            this.aggiornaLegenda();
+        })
+        this.map.on("overlayremove", () => {
+            this.aggiornaTestiBottoni();
+            this.aggiornaLegenda();
+        })
     }
  
-    
     /**
-	 * Mostra lo stato di UN layer, è visibile o no
 	 * 
-	 * @param string nomeLayer -> nome del layer
      */
-    isLayerVisibile(nomeLayer){
-        const layer = this.layers[nomeLayer];
-        if(!layer) return false;
-        return this.map.hasLayer(layer);
-    }
-
-    /**
-	 * Mostra lo stato di TUTTI i layer, sono visibili o no
-     */
-    areLayerVisibili(){
-        for(const nomeLayer in this.layers){
-            if(!this.isLayerVisibile(nomeLayer)) return false;
+    getBaseMapsPerLeaflet(){
+        const baseMapsLeaflet = {};
+        for(const nome in this.basemaps){
+            const etichetta = this.basemapLayers[nome];
+            baseMapsLeaflet[etichetta] = this.basemaps[nome];
         }
-        return true;
+        return baseMapsLeaflet;
     }
 
     /**
@@ -355,20 +409,6 @@ export class MotoreMappa {
         }
         if(!almenoUna) html += '<em>Nessun Layer WMS attivo</em>';
         div.innerHTML=html;
-    }
-
-     /**
-	 * Sincronizzazione layer control e bottoni
-     */
-    sincronizzazioneControlliLayer(){
-        this.map.on("overlayadd", () => {
-            this.aggiornaTestiBottoni();
-            this.aggiornaLegenda();
-        })
-        this.map.on("overlayremove", () => {
-            this.aggiornaTestiBottoni();
-            this.aggiornaLegenda();
-        })
     }
 
     //---------------------------------------------------
