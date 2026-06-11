@@ -10,7 +10,7 @@ export class MotoreMappa {
         this.layerAttivi = configurazione.layerAttivi || [];
         this.layerLabels = {};
         this.basemaps = {};
-        this.basemapLayers = {};
+        this.basemapLabels = {};
         this.nomeBasemapPredefinita = configurazione.nomeBasemapPredefinita || "OpenStreetMap";
 
         this.strumenti = configurazione.strumenti || {
@@ -22,13 +22,14 @@ export class MotoreMappa {
         }
         this.legende = {};
         this.controlloLegenda = null;
-        this.bottoniLayer = configurazione.bottoniLayer || {
+        this.bottoniLayer = {
             punti: "btnpunti",
             province: "btnprovince",
             edifici: "btnedifici",
             ctrr: "btnctrr",
             straderomane: "btnromano"
         }
+        this.debug = configurazione.debug || false;
     };
 
     /**
@@ -45,7 +46,18 @@ export class MotoreMappa {
         // per non creare problemi 
         this.map.doubleClickZoom.disable();
 
+        this.creaBaseMaps();
+        this.creaLayerTematici();
+
+        this.accendiBasemapPredefinita();
+        this.accendiLayerIniziali();
+        
+        this.creaLayerControl();
         this.aggiungiStrumenti();
+        this.sincronizzazioneControlliLayer();
+
+        this.debugLayer();
+
     }
 
     //---------------------------------------------------
@@ -94,7 +106,7 @@ export class MotoreMappa {
 		
         if(btntutti){
              btntutti.addEventListener("click", () => {
-                const tuttiVisibili = this.areLayerVisibili();
+                const tuttiVisibili = this.sonoTuttiLayerVisibili();
                 this.toggleTutti(!tuttiVisibili);
                 this.aggiornaTestiBottoni();
             })
@@ -110,7 +122,7 @@ export class MotoreMappa {
         for(const nomeLayer in this.bottoniLayer){
             const idBottone = this.bottoniLayer[nomeLayer];
             const bottone = document.getElementById(idBottone);
-            if(!bottone) continue
+            if(!bottone) continue;
 
             const visibile = this.isLayerVisibile(nomeLayer)
             const etichetta = this.layerLabels[nomeLayer] || nomeLayer;
@@ -119,7 +131,7 @@ export class MotoreMappa {
 
         const btntutti = document.getElementById("btntutti")
         if(btntutti){
-            const tuttoVisibile = this.areLayerVisibili();
+            const tuttoVisibile = this.sonoTuttiLayerVisibili();
             btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layers" : "Accendi tutti i layers");
         }
     };
@@ -131,7 +143,10 @@ export class MotoreMappa {
         for(const nomeLayer in this.bottoniLayer){
             const idBottone = this.bottoniLayer[nomeLayer];
             const bottone = document.getElementById(idBottone);
-            if(!bottone) continue;
+            if(!bottone){
+                console.warn("bottone non trovato: ", idBottone);
+                continue;
+            }
             bottone.addEventListener("click", () => {
                 const visibile  = this.isLayerVisibile(nomeLayer);
                 this.toggleLayer(nomeLayer, !visibile);
@@ -182,7 +197,7 @@ export class MotoreMappa {
         // CREO 3 NUOVI LAYER
         var edifici = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
             layers: 'rv:edifici_veneto_feb2022',
-			crs: L.CRS.EPSG6876, 
+			//crs: L.CRS.EPSG6876, 
 			format: 'image/png',
 			maxZoom: 19,
 			transparent: true
@@ -190,7 +205,7 @@ export class MotoreMappa {
 
         var ctrr = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
             layers: 'rv:ctrr',
-			crs: L.CRS.EPSG3003, 
+			//crs: L.CRS.EPSG3003, 
 			format: 'image/png',
 			maxZoom: 19,
 			transparent: true
@@ -198,7 +213,7 @@ export class MotoreMappa {
 
         var stradeRomane = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
             layers: 'rv:c11030141212_10straderoman',
-			crs: L.CRS.EPSG3003,
+			//crs: L.CRS.EPSG3003,
 			format: 'image/png',
 			maxZoom: 19,
 			transparent: true
@@ -248,14 +263,17 @@ export class MotoreMappa {
      */
     isLayerVisibile(nomeLayer){
         const layer = this.layers[nomeLayer];
-        if(!layer) return false;
+        if(!layer){
+            console.warn("layer non trovato: ", nomeLayer);
+            return false;
+        }
         return this.map.hasLayer(layer);
     }
 
     /**
 	 * Mostra lo stato di TUTTI i layer, sono visibili o no
      */
-    areLayerVisibili(){
+    sonoTuttiLayerVisibili(){
         for(const nomeLayer in this.layers){
             if(!this.isLayerVisibile(nomeLayer)) return false;
         }
@@ -295,39 +313,32 @@ export class MotoreMappa {
             maxZoom: 19,
             //crs: crs_6706,
             //maxZoom: 19,
-            options: {
-                attribution: 
+            attribution: 
                 "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
+            
         });
 
         var ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
             type: "tile",
             label: "Satellite",
             maxZoom: 19,
-            options: {
-                attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
+            attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
         });
 
         var oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
             type: "tile",
             label: 'Ocean',
             maxZoom: 19,
-            options: {
-                attribution: 
+            attribution: 
                 "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
         });
 
         var rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
             type: "tile",
             label: 'Outdoor',
             maxZoom: 19,
-            options: {
-                attribution: 
+            attribution: 
                 "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-            }
         });
         //aggiungo le basemaps
         this.aggiungiBaseMap("OpenStreetMap", osm, "<span style='color: black'> OpenStreetMap (default) </span>", true);
@@ -338,7 +349,20 @@ export class MotoreMappa {
         //<span style='color:'>
 
         //aggiungo la basemap predefinita alla mappa
-        this.basemaps[this.nomeBasemapPredefinita].addTo(this.map); 
+        this.accendiBasemapPredefinita();
+    }
+
+    /**
+	 * Accende la basemap predefinita
+     */
+    accendiBasemapPredefinita(){
+        const basemapDefault = this.basemaps[this.nomeBasemapPredefinita];
+        if(basemapDefault){
+            basemapDefault.addTo(this.map);
+            return;
+        }
+        console.warn("basemap predefinita non trovata: ", this.nomeBasemapPredefinita);
+        if(this.basemaps["OpenStreetMap"]) this.basemaps["OpenStreetMap"].addTo(this.map);
     }
 
     /**
@@ -351,7 +375,7 @@ export class MotoreMappa {
      */
     aggiungiBaseMap(nome, layer, etichetta, predefinita = false){
         this.basemaps[nome]= layer;
-        this.basemapLayers[nome] = etichetta;
+        this.basemapLabels[nome] = etichetta;
         if(predefinita) this.nomeBasemapPredefinita = nome;
     }
 
@@ -374,6 +398,9 @@ export class MotoreMappa {
             this.aggiornaTestiBottoni();
             this.aggiornaLegenda();
         })
+        this.map.on("baselayerchange", (evento) => {
+            console.log("Basemap attiva: ", evento.name);
+        })
     }
  
     /**
@@ -382,7 +409,7 @@ export class MotoreMappa {
     getBaseMapsPerLeaflet(){
         const baseMapsLeaflet = {};
         for(const nome in this.basemaps){
-            const etichetta = this.basemapLayers[nome];
+            const etichetta = this.basemapLabels[nome];
             baseMapsLeaflet[etichetta] = this.basemaps[nome];
         }
         return baseMapsLeaflet;
@@ -397,10 +424,11 @@ export class MotoreMappa {
         let html = "<strong>Legenda</strong><br>";
         let almenoUna = false;
         for(const nomeLayer in this.layers){
+            const etichetta = this.layerLabels[nomeLayer] || nomeLayer
             if(this.isLayerVisibile(nomeLayer) && this.legende[nomeLayer]){
                 html += `
                         <div class="voce-legenda"> 
-                            <div>${nomeLayer}</div>
+                            <div>${etichetta}</div>
                             <img src="${this.legende[nomeLayer]}" alt="Legenda ${nomeLayer}">
                         </div>
                         `;
@@ -507,9 +535,12 @@ export class MotoreMappa {
 
 
     debugLayer(){
-        console.log("Layer registrati: ", this.layers);
-        for(const nomeLayer in this.layers){
-            console.log(nomeLayer,"visibile", this.isLayerVisibile(nomeLayer));
+        if(!this.debug){
+            console.log("Layers: ", this.layers);
+            console.log("Layers labels: ", this.layerLabels);
+            console.log("Basemaps: ", this.basemaps);
+            console.log("Basemap labels: ", this.basemapLabels);
+            console.log("legende: ", this.legende);
         }
     }
     
@@ -517,18 +548,12 @@ export class MotoreMappa {
 	 * Aggiunge in un colpo solo tutti gli strumenti al metodo di inizializzazione della mappa
      */
     aggiungiStrumenti(){
-        this.creaBaseMaps();
-        this.creaLayerTematici();
-        this.accendiLayerIniziali();
-        this.creaLayerControl();
-        this.sincronizzazioneControlliLayer();
         if(this.strumenti.scala) this.aggiungiScala();
         if(this.strumenti.coordinateMouse) this.aggiungiPannelloCoordinate();
         if(this.strumenti.doubleClickCoordinate) this.aggiungiDoubleClickCoordinate();
         if(this.strumenti.ricerca) this.aggiungiRicerca();
         if(this.strumenti.miniMappa) this.aggiungiMinimappa();
         this.aggiungiLegenda();
-        this.debugLayer();
     };
 
 /*

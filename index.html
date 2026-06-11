@@ -37,8 +37,16 @@
 				idContenitore: "map",
 				centro: [41.9028, 12.4964],
 				zoom: 10,
+                strumenti: {
+                    scala: true,
+                    coordinate: true,
+                    DoubleClickCoordinate: true,
+                    ricerca: true,
+                    miniMappa: true, 
+                    legenda: true
+                },
                 layerAttivi : ["punti", "province"],
-                nomeBasemapPredefinita: "OpenStreetMap"
+                nomeBasemapPredefinita : "OpenStreetMap"
 			});
             mappa.iniziomappa();
             mappa.buttons();
