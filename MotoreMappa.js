@@ -15,10 +15,12 @@ export class MotoreMappa {
 
         this.strumenti = configurazione.strumenti || {
             scala: true,
+            zoomdiv: true,
             coordinateMouse: true,
             doubleClickCoordinate: true,
             ricerca: true,
-            miniMappa: true
+            miniMappa: true,
+            legenda: true
         }
         this.legende = {};
         this.controlloLegenda = null;
@@ -220,8 +222,6 @@ export class MotoreMappa {
         });
 
         //registro layer
-        //this.layers["punti"] = punti;
-        //this.layers["province"] = province;
         this.aggiungiLayer("punti", punti, "Punti");
         this.aggiungiLayer("province", province, "Province d'italia");
 
@@ -280,9 +280,7 @@ export class MotoreMappa {
         return true;
     }
 
-    /**
-	 * 1111111111111111111111111111111111111111111111111111111111111111111
-     */
+   
     getLayersPerLeaflet(){
         const layersLeaflet = {};
         for(const nome in this.layers){
@@ -346,10 +344,6 @@ export class MotoreMappa {
         this.aggiungiBaseMap("Ortofoto", ortofoto, "<span style='color: green'> Ortofoto </span>");
         this.aggiungiBaseMap("Oceani", oceani, "<span style='color: blue'> Oceani </span>");
         this.aggiungiBaseMap("Rilievi", rilievi, "<span style='color: brown'> Rilievi </span>");
-        //<span style='color:'>
-
-        //aggiungo la basemap predefinita alla mappa
-        this.accendiBasemapPredefinita();
     }
 
     /**
@@ -403,9 +397,7 @@ export class MotoreMappa {
         })
     }
  
-    /**
-	 * 
-     */
+
     getBaseMapsPerLeaflet(){
         const baseMapsLeaflet = {};
         for(const nome in this.basemaps){
@@ -456,6 +448,25 @@ export class MotoreMappa {
     }
 
     /**
+	 * Indicatore che mostra il livello di zoom
+     */
+    aggiungiIndicatoreZoom(){
+        const controllo = L.control({
+            position: "topright"
+        });
+        controllo.onAdd = () => {
+            const div = L.DomUtil.create("div", "pannello-zoom");
+            div.innerHTML = "Zoom: " + this.map.getZoom();
+            this.zoomdiv = div;
+            return div;
+        };
+        controllo.addTo(this.map);
+        this.map.on("zoomend", () => {
+            this.zoomdiv.innerHTML = "Zoom: " + this.map.getZoom();
+        });
+    }
+
+    /**
 	 * Coordinate sempre visibili
      */
     aggiungiPannelloCoordinate(){
@@ -484,9 +495,11 @@ export class MotoreMappa {
         this.map.on("dblclick", (evento) => {
             const lat = evento.latlng.lat.toFixed(6);
             const lng = evento.latlng.lng.toFixed(6);
+            navigator.clipboard.writeText(lat + ", " + lng);
             L.popup().setLatLng(evento.latlng)
                     .setContent("Lat: " + lat + " <br>Lng: "+ lng)
                     .openOn(this.map);
+            
         });
     };
 
@@ -535,7 +548,7 @@ export class MotoreMappa {
 
 
     debugLayer(){
-        if(!this.debug){
+        if(this.debug){
             console.log("Layers: ", this.layers);
             console.log("Layers labels: ", this.layerLabels);
             console.log("Basemaps: ", this.basemaps);
@@ -549,11 +562,12 @@ export class MotoreMappa {
      */
     aggiungiStrumenti(){
         if(this.strumenti.scala) this.aggiungiScala();
+        if(this.strumenti.zoomdiv) this.aggiungiIndicatoreZoom();
         if(this.strumenti.coordinateMouse) this.aggiungiPannelloCoordinate();
         if(this.strumenti.doubleClickCoordinate) this.aggiungiDoubleClickCoordinate();
         if(this.strumenti.ricerca) this.aggiungiRicerca();
         if(this.strumenti.miniMappa) this.aggiungiMinimappa();
-        this.aggiungiLegenda();
+        if(this.strumenti.legenda) this.aggiungiLegenda();
     };
 
 /*
