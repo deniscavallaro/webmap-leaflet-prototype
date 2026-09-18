@@ -8,7 +8,9 @@ export class MotoreMappa {
         this.centro = configurazione.centro || [45.407733, 11.873339];
         this.zoom = configurazione.zoom || 12;
         this.layerAttivi = configurazione.layerAttivi || [];
+        this.layerLabels = {};
         this.basemaps = {};
+        this.basemapLayers = {};
         this.nomeBasemapPredefinita = configurazione.nomeBasemapPredefinita || "OpenStreetMap";
 
         this.strumenti = configurazione.strumenti || {
@@ -17,6 +19,15 @@ export class MotoreMappa {
             doubleClickCoordinate: true,
             ricerca: true,
             miniMappa: true
+        }
+        this.legende = {};
+        this.controlloLegenda = null;
+        this.bottoniLayer = configurazione.bottoniLayer || {
+            punti: "btnpunti",
+            province: "btnprovince",
+            edifici: "btnedifici",
+            ctrr: "btnctrr",
+            straderomane: "btnromano"
         }
     };
 
@@ -38,167 +49,8 @@ export class MotoreMappa {
     }
 
     //---------------------------------------------------
-    //              BASEMAP,LAYER, BOTTONI
+    //                      BOTTONI
     //---------------------------------------------------
-
-
-    /**
-	 * Crea i layer predefiniti e li attiva tutti  
-	 *           -> province, punti
-     */
-    creaLayerTematici(){
-        const m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'), // venezia  
-              m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'), // padova
-              m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3')
-       
-        var Bbox_width= 18.99-5.93;
-        var startResolution = Bbox_width/1024;
-        var grid_resolution = new Array(22);
-        for (var i = 0; i < 22; ++i) {
-            grid_resolution[i] = startResolution / Math.pow(2, i);
-        }
-
-       var crs_6706 = new L.Proj.CRS('EPSG:6706', '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs', {
-            origin: [0, 0],
-            bounds: L.bounds([5.93, 34.76], [18.99, 47.1]),
-            resolutions: grid_resolution
-        });
-
-        // province veneto
-        var province = L.tileLayer.wms('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
-			layers: ['province', 'CP.CadastralZoning'],
-			crs: crs_6706,
-			format: 'image/png',
-			maxZoom: 19,
-			transparent: true,
-			attribution: '© ' + '<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/it/">Agenzia delle Entrate</a>',
-		});
-
-        var punti = L.layerGroup([m1,m2,m3])
-
-        //registro layer
-        this.layers["punti"] = punti;
-        this.layers["province"] = province;
-        
-        // visualizzo layers in console
-
-        // CREO 3 NUOVI LAYER
-		var edifici = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
-			layers: "rv:edifici_veneto_feb2022",
-			format: "image/png",
-			transparent: true,
-			version: "1.3.0",
-			crs: L.CRS.EPSG4326,
-			attribution: "Regione Veneto"
-		});
-
-/* 
- * MATILDE!!! CORREGGI GLI ALTRI!!!!
- */ 
-
-		var ctrr = L.tileLayer("hhttps://idt2-geoserver.regione.veneto.it/geoserver/wms", {
-            layers: ['ctrr'],
-			//crs: 84, // 84
-			format: 'image/png',
-			maxZoom: 19,
-			transparent: true
-        });
-
-        var stradeRomane = L.tileLayer("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
-            layers: ['strade_romane'],
-			//crs: 84, // 84
-			format: 'image/png',
-			maxZoom: 19,
-			transparent: true
-        });
-
-        this.layers["edifici del veneto"] = edifici;
-        this.layers["ctrr"] = ctrr;
-        this.layers["strade romane"] = stradeRomane;
-
-        console.log(this.layers)
-    }
-
-    /**
-	 * Attiva in automatico i layer
-     */
-    accendiLayerIniziali() {
-        for (const nomeLayer of this.layerAttivi) {
-            this.toggleLayer(nomeLayer, true);
-        }
-    }
-
-    /**
-	 * Crea le basemap predefinite e attiva quella di default 
-	 *           -> openstreetmap (attivata), stradale, ortofoto, oceani, rilievi
-     */
-    creaBaseMaps(){
-        //basemap openstreet map, di base
-        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '© OpenStreetMap'
-            });
-
-        var stradale = L.tileLayer("https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: 'strade',
-            maxZoom: 19,
-            //crs: crs_6706,
-            //maxZoom: 19,
-			attribution: 
-                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-        });
-
-        var ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: "Satellite",
-            maxZoom: 19,
-			attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-        });
-
-        var oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: 'Ocean',
-            maxZoom: 19,
-			attribution: 
-                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-        });
-
-        var rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
-            type: "tile",
-            label: 'Outdoor',
-            maxZoom: 19,
-			attribution: 
-                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
-        });
-        //aggiungo le basemaps
-        this.aggiungiBaseMap("<span style='color: black'> OpenStreetMap (default) </span>", osm, true);
-        this.aggiungiBaseMap("<span style='color: grey'> Stradale </span>", stradale);
-        this.aggiungiBaseMap("<span style='color: green'> Ortofoto </span>", ortofoto);
-        this.aggiungiBaseMap("<span style='color: blue'> Oceani </span>", oceani);
-        this.aggiungiBaseMap("<span style='color: brown'> Rilievi </span>", rilievi);
-
-        //aggiungo la basemap predefinita alla mappa
-        this.basemaps[this.nomeBasemapPredefinita].addTo(this.map); 
-    }
-    /**
-	 * Crea il pannello di controlllo Leaflet per le basemap e i layer 
-     */
-    creaLayerControl(){
-        var layerControl = L.control.layers(this.basemaps, this.layers).addTo(this.map);
-    }
-
-    /**
-	 * Aggiunge le basemap alla mappa principale
-	 * 
-	 * @param string nome         -> nome visualizzato della basemap
-     * @param var layer           -> nome della variabile legata alla basemap
-	 * @param boolean predefinita -> se true la basemap viene inportata come predefinita, altrimenti niente  
-     */
-    aggiungiBaseMap(nome, layer, predefinita = false){
-        this.basemaps[nome]= layer;
-        if(predefinita) this.nomeBasemapPredefinita = nome;
-    }
 
     /**
 	 * Attiva o disattiva uno o più layer 
@@ -237,46 +89,158 @@ export class MotoreMappa {
 	 * 
      */
     buttons() {
-        const btnpunti = document.getElementById("btnpunti");
-        const btnprovince = document.getElementById("btnprovince");
+        this.collegaBottoniLayer();
         const btntutti = document.getElementById("btntutti");
 		
-        
-        btnpunti.addEventListener("click", () => {
-            const visibile = this.isLayerVisibile("punti");
-            this.toggleLayer("punti", puntiVisibili);
-            this.aggiornaTestiBottoni();
-        });
-        btnprovince.addEventListener("click", () => {
-            const visibile = this.isLayerVisibile("province");
-            this.toggleLayer("province", !provinceVisibili);
-            this.aggiornaTestiBottoni();
-        });
-        btntutti.addEventListener("click", () => {
-            const tuttiVisibili = this.areLayerVisibili();
-            this.toggleTutti(!tuttiVisibili);
-            this.aggiornaTestiBottoni();
-        });
+        if(btntutti){
+             btntutti.addEventListener("click", () => {
+                const tuttiVisibili = this.areLayerVisibili();
+                this.toggleTutti(!tuttiVisibili);
+                this.aggiornaTestiBottoni();
+            })
+        }
 
         this.aggiornaTestiBottoni();
     }
- 
+
     /**
 	 * Aggiorna i testi dei bottoni
      */
     aggiornaTestiBottoni(){
-        const btnpunti = document.getElementById("btnpunti");
-        const btnprovince = document.getElementById("btnprovince");
-        const btntutti = document.getElementById("btntutti");
+        for(const nomeLayer in this.bottoniLayer){
+            const idBottone = this.bottoniLayer[nomeLayer];
+            const bottone = document.getElementById(idBottone);
+            if(!bottone) continue
 
-        let puntiVisibili = this.isLayerVisibile("punti");
-		let provinceVisibili = this.isLayerVisibile("province");
-		let tuttoVisibile = this.areLayerVisibili();
+            const visibile = this.isLayerVisibile(nomeLayer)
+            const etichetta = this.layerLabels[nomeLayer] || nomeLayer;
+            bottone.textContent = (visibile ? "Spegni " + etichetta : "Accendi " + etichetta);
+        }
 
-        btnpunti.textContent = (puntiVisibili ? "Spegni punti" : "Accendi punti");
-        btnprovince.textContent = (provinceVisibili ? "Spegni province" : "Accendi province");
-        btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layers" : "Accendi tutti i layers");
+        const btntutti = document.getElementById("btntutti")
+        if(btntutti){
+            const tuttoVisibile = this.areLayerVisibili();
+            btntutti.textContent = (tuttoVisibile ? "Spegni tutti i layers" : "Accendi tutti i layers");
+        }
     };
+
+    /**
+	 * Collega i bottoni ai layer
+     */
+    collegaBottoniLayer(){
+        for(const nomeLayer in this.bottoniLayer){
+            const idBottone = this.bottoniLayer[nomeLayer];
+            const bottone = document.getElementById(idBottone);
+            if(!bottone) continue;
+            bottone.addEventListener("click", () => {
+                const visibile  = this.isLayerVisibile(nomeLayer);
+                this.toggleLayer(nomeLayer, !visibile);
+                this.aggiornaTestiBottoni();
+            })
+        }
+    }
+    
+
+    //---------------------------------------------------
+    //                      LAYER
+    //---------------------------------------------------
+
+    /**
+	 * Crea i layer predefiniti e li attiva tutti  
+	 *           -> province, punti
+     */
+    creaLayerTematici(){
+        const m1 = L.marker([45.26, 12.19]).bindPopup('questo è il marker 1'), // venezia  
+              m2 = L.marker([45.407733, 11.873339]).bindPopup('questo è il marker 2'), // padova
+              m3 = L.marker([45.50, 12.30]).bindPopup('questo è il marker 3')
+       
+        var Bbox_width= 18.99-5.93;
+        var startResolution = Bbox_width/1024;
+        var grid_resolution = new Array(22);
+        for (var i = 0; i < 22; ++i) {
+            grid_resolution[i] = startResolution / Math.pow(2, i);
+        }
+
+       var crs_6706 = new L.Proj.CRS('EPSG:6706', '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs', {
+            origin: [0, 0],
+            bounds: L.bounds([5.93, 34.76], [18.99, 47.1]),
+            resolutions: grid_resolution
+        });
+
+        // province veneto
+        var province = L.tileLayer.wms('https://wms.cartografia.agenziaentrate.gov.it/inspire/wms/ows01.php', {
+			layers: ['province', 'CP.CadastralZoning'],
+			crs: crs_6706,
+			format: 'image/png',
+			maxZoom: 19,
+			transparent: true,
+			attribution: '© ' + '<a href="https://creativecommons.org/licenses/by-nc-nd/2.0/it/">Agenzia delle Entrate</a>',
+		});
+
+        var punti = L.layerGroup([m1,m2,m3])
+
+        // CREO 3 NUOVI LAYER
+        var edifici = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
+            layers: 'rv:edifici_veneto_feb2022',
+			crs: L.CRS.EPSG6876, 
+			format: 'image/png',
+			maxZoom: 19,
+			transparent: true
+        });
+
+        var ctrr = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
+            layers: 'rv:ctrr',
+			crs: L.CRS.EPSG3003, 
+			format: 'image/png',
+			maxZoom: 19,
+			transparent: true
+        });
+
+        var stradeRomane = L.tileLayer.wms("https://idt2-geoserver.regione.veneto.it/geoserver/wms", {
+            layers: 'rv:c11030141212_10straderoman',
+			crs: L.CRS.EPSG3003,
+			format: 'image/png',
+			maxZoom: 19,
+			transparent: true
+        });
+
+        //registro layer
+        //this.layers["punti"] = punti;
+        //this.layers["province"] = province;
+        this.aggiungiLayer("punti", punti, "Punti");
+        this.aggiungiLayer("province", province, "Province d'italia");
+
+        this.aggiungiLayer("edifici", edifici, "Edifici accatastati Veneto - feb2022")
+        this.legende["edifici"] = "http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Aedifici_veneto_feb2022"
+        this.aggiungiLayer("ctrr", ctrr, "ctrr")
+        this.legende["ctrr"] = "http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Actrr" 
+        this.aggiungiLayer("straderomane", stradeRomane, "Strade romane")
+        this.legende["straderomane"] ="http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Ac11030141212_10straderoman"
+
+        console.log(this.legende)
+    }
+
+    /**
+	 * aggiunge i layer all' array globale layers
+	 * 
+	 * @param string nome         -> nome del layer
+     * @param var layer           -> nome della variabile legata al layer
+	 * @param string etichetta    -> nome del layer visualizzato dall'utente  
+     */
+    aggiungiLayer(nome, layer, etichetta){
+        this.layers[nome] = layer;
+        this.layerLabels[nome] = etichetta;
+    }
+
+    /**
+	 * Attiva in automatico i layer
+     */
+    accendiLayerIniziali() {
+        for (const nomeLayer of this.layerAttivi) {
+            this.toggleLayer(nomeLayer, true);
+        }
+    }
+
     /**
 	 * Mostra lo stato di UN layer, è visibile o no
 	 * 
@@ -294,25 +258,161 @@ export class MotoreMappa {
     areLayerVisibili(){
         for(const nomeLayer in this.layers){
             if(!this.isLayerVisibile(nomeLayer)) return false;
-            return true;
         }
+        return true;
     }
 
-     /**
+    /**
+	 * 1111111111111111111111111111111111111111111111111111111111111111111
+     */
+    getLayersPerLeaflet(){
+        const layersLeaflet = {};
+        for(const nome in this.layers){
+            const etichetta = this.layerLabels[nome];
+            layersLeaflet[etichetta] = this.layers[nome];
+        }
+        return layersLeaflet;
+    }
+
+    //---------------------------------------------------
+    //                      BASEMAP
+    //---------------------------------------------------
+
+    /**
+	 * Crea le basemap predefinite e attiva quella di default 
+	 *           -> openstreetmap (attivata), stradale, ortofoto, oceani, rilievi
+     */
+    creaBaseMaps(){
+        //basemap openstreet map, di base
+        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            });
+
+        var stradale = L.tileLayer("https://api.maptiler.com/maps/streets-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'strade',
+            maxZoom: 19,
+            //crs: crs_6706,
+            //maxZoom: 19,
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+
+        var ortofoto = L.tileLayer("https://api.maptiler.com/maps/satellite-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: "Satellite",
+            maxZoom: 19,
+            options: {
+                attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+
+        var oceani = L.tileLayer("https://api.maptiler.com/maps/ocean-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'Ocean',
+            maxZoom: 19,
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+
+        var rilievi = L.tileLayer("https://api.maptiler.com/maps/outdoor-v4/{z}/{x}/{y}.jpg?key=tq4NkZ5dHYumXCN3aAZX", {
+            type: "tile",
+            label: 'Outdoor',
+            maxZoom: 19,
+            options: {
+                attribution: 
+                "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e"
+            }
+        });
+        //aggiungo le basemaps
+        this.aggiungiBaseMap("OpenStreetMap", osm, "<span style='color: black'> OpenStreetMap (default) </span>", true);
+        this.aggiungiBaseMap("Stradale", stradale, "<span style='color: grey'> Stradale </span>");
+        this.aggiungiBaseMap("Ortofoto", ortofoto, "<span style='color: green'> Ortofoto </span>");
+        this.aggiungiBaseMap("Oceani", oceani, "<span style='color: blue'> Oceani </span>");
+        this.aggiungiBaseMap("Rilievi", rilievi, "<span style='color: brown'> Rilievi </span>");
+        //<span style='color:'>
+
+        //aggiungo la basemap predefinita alla mappa
+        this.basemaps[this.nomeBasemapPredefinita].addTo(this.map); 
+    }
+
+    /**
+	 * Aggiunge le basemap alL' array basemaps
+	 * 
+	 * @param string nome         -> nome visualizzato della basemap
+     * @param var layer           -> nome della variabile legata alla basemap
+     * @param string etichetta    -> nome della basemap visualizzato dall'utente
+	 * @param boolean predefinita -> se true la basemap viene inportata come predefinita, altrimenti niente  
+     */
+    aggiungiBaseMap(nome, layer, etichetta, predefinita = false){
+        this.basemaps[nome]= layer;
+        this.basemapLayers[nome] = etichetta;
+        if(predefinita) this.nomeBasemapPredefinita = nome;
+    }
+
+    /**
+	 * Crea il pannello di controlllo Leaflet per le basemap e i layer 
+     */
+    creaLayerControl(){
+        var layerControl = L.control.layers(this.getBaseMapsPerLeaflet(), this.getLayersPerLeaflet()).addTo(this.map);
+    }
+
+    /**
 	 * Sincronizzazione layer control e bottoni
      */
     sincronizzazioneControlliLayer(){
         this.map.on("overlayadd", () => {
             this.aggiornaTestiBottoni();
+            this.aggiornaLegenda();
         })
         this.map.on("overlayremove", () => {
             this.aggiornaTestiBottoni();
+            this.aggiornaLegenda();
         })
     }
+ 
+    /**
+	 * 
+     */
+    getBaseMapsPerLeaflet(){
+        const baseMapsLeaflet = {};
+        for(const nome in this.basemaps){
+            const etichetta = this.basemapLayers[nome];
+            baseMapsLeaflet[etichetta] = this.basemaps[nome];
+        }
+        return baseMapsLeaflet;
+    }
 
+    /**
+	 * tiene aggiornata la legenda
+     */
+    aggiornaLegenda(){
+        const div = document.querySelector(".pannello-legenda");
+        if(!div) return ;
+        let html = "<strong>Legenda</strong><br>";
+        let almenoUna = false;
+        for(const nomeLayer in this.layers){
+            if(this.isLayerVisibile(nomeLayer) && this.legende[nomeLayer]){
+                html += `
+                        <div class="voce-legenda"> 
+                            <div>${nomeLayer}</div>
+                            <img src="${this.legende[nomeLayer]}" alt="Legenda ${nomeLayer}">
+                        </div>
+                        `;
+                almenoUna = true;
+            }
+        }
+        if(!almenoUna) html += '<em>Nessun Layer WMS attivo</em>';
+        div.innerHTML=html;
+    }
 
     //---------------------------------------------------
-    //                     STRUMENTI
+    //                AGGIUNTA STRUMENTI
     //---------------------------------------------------
 
 
@@ -386,6 +486,32 @@ export class MotoreMappa {
             minimized: false
         }).addTo(this.map);
     }
+
+    /**
+	 * Aggiunge la legenda alla mappa
+     */
+    aggiungiLegenda(){
+        this.controlloLegenda = L.control({
+            position: "bottomright"
+        });
+        this.controlloLegenda.onAdd = () => {
+            const div = L.DomUtil.create("div", "pannello-legenda");
+            div.innerHTML = "<strong>Legenda</strong><br> <em>Nessun Layer WMS attivo</em>";
+            return div;
+        };
+        console.log(this.map);
+        this.controlloLegenda.addTo(this.map);
+        this.aggiornaLegenda();
+    }
+
+
+
+    debugLayer(){
+        console.log("Layer registrati: ", this.layers);
+        for(const nomeLayer in this.layers){
+            console.log(nomeLayer,"visibile", this.isLayerVisibile(nomeLayer));
+        }
+    }
     
     /**
 	 * Aggiunge in un colpo solo tutti gli strumenti al metodo di inizializzazione della mappa
@@ -401,6 +527,8 @@ export class MotoreMappa {
         if(this.strumenti.doubleClickCoordinate) this.aggiungiDoubleClickCoordinate();
         if(this.strumenti.ricerca) this.aggiungiRicerca();
         if(this.strumenti.miniMappa) this.aggiungiMinimappa();
+        this.aggiungiLegenda();
+        this.debugLayer();
     };
 
 /*
@@ -414,30 +542,4 @@ export class MotoreMappa {
     <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://idt2-geoserver.regione.veneto.it:80/geoserver/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=rv%3Ac1103015175_straderomane"/>
 
 */
-
-
-
-
-    /**
-	 * (dovrebbe) creare una nuova basemap con delle info standard
-	 * 
-	 * @param button layer    -> nome layer
-     * @param button tilelayer -> link al layer
-     * 
-     * @param button type    -> tipo di layer
-     * @param boolean label     -> nome sull'etichetta
-     * @param boolean maxzoom  -> zoom massimo
-     * @param boolean attribution     -> attributi
-     */
-    newBasemap(layer, tileLayer, type, label, maxZoom, attribution){
-        if(!this.basemaps.includes(layer)){
-            this.basemaps[layer] = L.tileLayer(tileLayer,{
-                type: type,
-                label: label,
-                maxZoom: maxZoom,
-                attribution: attribution
-            });
-        }else{console.log("Layer esistente");}
-    }
-        
 }
